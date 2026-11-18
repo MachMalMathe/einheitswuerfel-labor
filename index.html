@@ -1,0 +1,433 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Einheitswürfel-Labor | Ähnliche Körper</title>
+<style>
+:root{font-family:system-ui,-apple-system,Segoe UI,sans-serif;color:#193047;background:#f4f7fb}
+*{box-sizing:border-box}body{margin:0}
+header{background:#122d47;color:white;padding:22px max(24px,calc((100vw - 1200px)/2))}
+h1{margin:0;font-size:clamp(22px,3vw,32px)}header p{margin:8px 0 0;color:#cbdce9}
+main{max-width:1660px;margin:auto;padding:22px}
+.layout{display:grid;grid-template-columns:300px minmax(0,1fr);gap:18px}
+.card{background:white;border:1px solid #dbe5ed;border-radius:14px;padding:18px;box-shadow:0 2px 10px #1a39520b}
+.controls{display:grid;gap:14px}
+label{font-weight:650;font-size:14px}
+select,input,button{font:inherit}
+button{border:1px solid #cbd9e5;border-radius:9px;padding:10px 12px;cursor:pointer;background:#fff;color:#16334d}
+button:hover{background:#edf5fd}button.primary{background:#176ba5;color:white;border-color:#176ba5}
+button:focus-visible,select:focus-visible,input:focus-visible,.gridbtn:focus-visible{outline:3px solid #75b1e1}
+select,input[type=range]{width:100%;padding:10px;border-radius:9px;border:1px solid #cbd9e5;background:#fff}
+input[type=range]{padding:0;border:none;background:transparent}
+.buttons{display:flex;flex-wrap:wrap;gap:8px}.buttons button{flex:1}
+.pill{display:inline-block;border-radius:99px;background:#ecf5fd;padding:4px 10px;color:#1b669d;font-weight:650;font-size:13px}
+.stage{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.panel{min-width:0}.panel h2{font-size:17px;margin:0 0 6px}.panel p{margin:0 0 10px;font-size:13px;color:#547086}
+.canvas-wrap{background:linear-gradient(#f5f9fc,#e6eff6);border:1px solid #d6e3ed;border-radius:12px;overflow:hidden}
+canvas{width:100%;height:auto;display:block;cursor:grab;touch-action:none}canvas.dragging{cursor:grabbing}
+.metric{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:15px}
+.metric>div{border:1px solid #e2eaf1;background:#f9fbfe;padding:13px;border-radius:10px}
+.metric small{display:block;color:#587184;font-size:12px}.metric strong{font-size:24px;display:block;margin-top:4px}.metric em{font-style:normal;font-size:12px;color:#557088}
+.savebar{margin-top:16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}.savebar button{background:#176ba5;border-color:#176ba5;color:white;font-weight:650}.savebar button:hover{background:#125783}.savebar small{color:#587184}
+.results{margin-top:12px}.results h2{margin:0 0 12px;font-size:20px}.results-table-wrap{overflow-x:auto}.results table{width:100%;border-collapse:collapse;text-align:center;min-width:600px}.results th,.results td{padding:9px 8px;border-bottom:1px solid #dce7ef;font-variant-numeric:tabular-nums}.results th{background:#eef5fb;color:#16334d}.results td:first-child{font-weight:700}.results th:first-child{white-space:nowrap}.results tbody tr:nth-child(even){background:#f8fbfd}.results .empty{color:#637f90;text-align:left;padding:12px 0}.results-actions{display:flex;justify-content:flex-end;margin-top:10px}.results-actions button{font-size:13px;padding:7px 10px}
+.note{line-height:1.5;color:#3e5c70;font-size:14px}.hint{background:#eaf5ff;border-radius:10px;padding:12px;font-size:14px;line-height:1.5}
+.grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-top:10px}
+.gridbtn{aspect-ratio:1/1;border:1px solid #a8bfd1;border-radius:8px;background:#fff;font-weight:700;color:#557088;cursor:pointer;padding:0}
+.gridbtn.on{background:#8fc6e6;border-color:#2f6d96;color:#143a57;box-shadow:inset 0 0 0 2px #1f577d33}
+.legend,.subtle{font-size:12px;color:#5b7386}
+.zoomrow{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center}
+.zoomvalue{font-weight:700;color:#1b669d;min-width:58px;text-align:right}
+.grid-frame{position:relative;padding:8px 0 0 0}.gridbtn.origin{outline:2px solid #b98522;outline-offset:-3px}.viewbuttons{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.viewbuttons button{flex:1;font-size:13px}
+footer{font-size:12px;color:#6a8292;text-align:center;margin:18px}
+@media(max-width:880px){.layout{grid-template-columns:1fr}}
+@media(max-width:600px){.stage{grid-template-columns:1fr}.metric{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<header>
+  <h1>Einheitswürfel-Labor</h1>
+  <p>Baue Körper und erforsche, wie sich Oberfläche und Volumen beim Vergrößern verändern.</p>
+</header>
+<main>
+  <div class="layout">
+    <section class="card controls">
+      <div>
+        <span class="pill">1 · Bauen</span>
+        <h2>Dein Körper</h2>
+        <p class="note">Wähle eine Ebene und klicke im Raster auf die Felder, um Einheitswürfel hinzuzufügen oder zu entfernen.</p>
+      </div>
+      <div>
+        <label for="layer">Bauebene (Höhe)</label>
+        <select id="layer">
+          <option value="0">Ebene 1 (unten)</option>
+          <option value="1">Ebene 2</option>
+          <option value="2">Ebene 3</option>
+          <option value="3">Ebene 4</option>
+          <option value="4">Ebene 5</option>
+        </select>
+        <div class="grid-frame"><div id="grid" class="grid" aria-label="Bauraster"></div></div>
+        <div class="legend">Draufsicht / Vogelperspektive: obere Zeile = hinten, untere Zeile = vorne. Goldener Rand = Ecke (0,0).</div>
+      </div>
+      <div>
+        <div class="buttons">
+          <button id="clear">Alle entfernen</button>
+          <button id="example">Beispiel: Stufen</button>
+        </div>
+      </div>
+      <div>
+        <span class="pill">2 · Vergrößern</span>
+        <h2>Streckfaktor</h2>
+        <label for="scale">Längen mit Faktor k vergrößern</label>
+        <select id="scale">
+          <option value="1">k = 1 (unverändert)</option>
+          <option value="2" selected>k = 2</option>
+          <option value="3">k = 3</option>
+          <option value="4">k = 4</option>
+        </select>
+      </div>
+      <div>
+        <span class="pill">3 · Ansicht</span>
+        <h2>Zoom</h2>
+        <label for="zoom">Zoom für beide 3D-Ansichten</label>
+        <div class="zoomrow">
+          <input id="zoom" type="range" min="50" max="300" step="5" value="115">
+          <div id="zoomvalue" class="zoomvalue">115 %</div>
+        </div>
+        <div class="buttons">
+          <button id="zoomout">−</button>
+          <button id="zoomreset">100 %</button>
+          <button id="zoomin">+</button>
+        </div>
+        <div class="legend">Tipp: Du kannst zusätzlich mit dem Mausrad direkt über den Ansichten zoomen.</div>
+        <div class="viewbuttons"><button id="topview">Draufsicht wie Raster</button><button id="resetview">3D-Ausgangsansicht</button></div>
+        <div class="legend">Mit „Draufsicht wie Raster“ entspricht die 3D-Ansicht genau dem Bauraster.</div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="stage">
+        <div class="panel">
+          <h2>Originalkörper</h2>
+          <p>3D-Ansicht · mit gedrückter Maus oder per Touch drehen</p>
+          <div class="canvas-wrap"><canvas id="original" width="760" height="650" aria-label="Drehbare 3D-Darstellung des Originalkörpers"></canvas></div>
+        </div>
+        <div class="panel">
+          <h2>Ähnlicher Körper</h2>
+          <p id="scaledlabel">Alle Kantenlängen × 2 · mit derselben Perspektive</p>
+          <div class="canvas-wrap"><canvas id="scaled" width="760" height="650" aria-label="Drehbare 3D-Darstellung des vergrößerten Körpers"></canvas></div>
+        </div>
+      </div>
+
+      <div class="metric">
+        <div><small>Deckfläche Original → vergrößert</small><strong id="toparea">–</strong><em>Nach oben gerichtete Außenflächen</em></div>
+        <div><small>Oberfläche Original → vergrößert</small><strong id="surface">–</strong><em>Anzahl der sichtbaren Flächen</em></div>
+        <div><small>Volumen Original → vergrößert</small><strong id="volume">–</strong><em>Anzahl an Einheitswürfeln</em></div>
+      </div>
+
+      <div class="savebar"><button id="savevalues" type="button">Werte speichern</button><small>Übernimmt die aktuellen Werte in die Tabelle.</small></div>
+
+  <section class="results" id="results" aria-label="Gespeicherte Messwerte">
+    <h2>Gespeicherte Messwerte</h2>
+    <div class="results-table-wrap">
+      <table aria-label="Vergleich von Deckfläche, Oberfläche und Volumen bei unterschiedlichen Streckfaktoren">
+        <thead>
+          <tr><th scope="col">Streckfaktor k</th><th scope="col">D</th><th scope="col">D′</th><th scope="col">O</th><th scope="col">O′</th><th scope="col">V</th><th scope="col">V′</th></tr>
+        </thead>
+        <tbody id="resultsbody"></tbody>
+      </table>
+    </div>
+    <p class="empty" id="results-empty">Noch keine Werte gespeichert.</p>
+    <div class="results-actions"><button id="clearresults" type="button" disabled>Tabelle leeren</button></div>
+  </section>
+      <p class="note" style="margin-top:16px">Die Deckflächen sind bei beiden Körpern farbig hervorgehoben: <span style="color:#a36300;font-weight:700">orange im Original</span> und <span style="color:#8b3687;font-weight:700">violett in der Vergrößerung</span>. Zur Oberfläche zählen alle außen liegenden Würfelflächen, auch auf der Unterseite und auf den gerade verdeckten Seiten.</p>
+
+    </section>
+  </div>
+  <footer>Interaktive Lernsimulation · Raster 5 × 5 × 5 · drehbare 3D-Ansichten</footer>
+</main>
+
+<script>
+const N = 5;
+const vox = new Set();
+const $ = id => document.getElementById(id);
+const key = (x,y,z) => `${x},${y},${z}`;
+const has = (x,y,z) => vox.has(key(x,y,z));
+let layer = 0;
+let k = 2;
+let yaw = 0;
+let pitch = 0.9;
+let zoom = 1.15;
+
+function toggleVoxel(x,y,z){
+  const q = key(x,y,z);
+  vox.has(q) ? vox.delete(q) : vox.add(q);
+}
+
+function buildGrid(){
+  const grid = $('grid');
+  grid.innerHTML = '';
+  // True top view / bird's-eye view:
+  // top row = back, bottom row = front.
+  for(let y=0; y<N; y++){
+    for(let x=0; x<N; x++){
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'gridbtn' + (x===0 && y===0 ? ' origin' : '');
+      btn.dataset.x = x;
+      btn.dataset.y = y;
+      btn.addEventListener('click', ()=>{
+        toggleVoxel(x,y,layer);
+        updateGrid();
+        stats();
+      });
+      grid.appendChild(btn);
+    }
+  }
+  updateGrid();
+}
+
+function updateGrid(){
+  [...$('grid').children].forEach(btn=>{
+    const x = +btn.dataset.x, y = +btn.dataset.y;
+    const on = has(x,y,layer);
+    btn.classList.toggle('on', on);
+    btn.textContent = on ? '■' : '';
+    btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    btn.setAttribute('aria-label', `Feld x ${x+1}, y ${y+1}, Ebene ${layer+1}${on ? ', Würfel vorhanden' : ', leer'}`);
+  });
+}
+
+function expandedCells(scale){
+  const cells=[];
+  for(const s of vox){
+    const [x,y,z]=s.split(',').map(Number);
+    for(let i=0;i<scale;i++) for(let j=0;j<scale;j++) for(let t=0;t<scale;t++) cells.push([x*scale+i,y*scale+j,z*scale+t]);
+  }
+  return cells;
+}
+
+function computeBounds(cells){
+  if(!cells.length) return {minX:0,maxX:1,minY:0,maxY:1,minZ:0,maxZ:1};
+  return {
+    minX: Math.min(...cells.map(v=>v[0])),
+    maxX: Math.max(...cells.map(v=>v[0]+1)),
+    minY: Math.min(...cells.map(v=>v[1])),
+    maxY: Math.max(...cells.map(v=>v[1]+1)),
+    minZ: Math.min(...cells.map(v=>v[2])),
+    maxZ: Math.max(...cells.map(v=>v[2]+1)),
+  };
+}
+
+function rotatePoint(X,Y,Z){
+  const cy = Math.cos(yaw), sy = Math.sin(yaw);
+  const cp = Math.cos(pitch), sp = Math.sin(pitch);
+  const x1 = cy*X - sy*Y;
+  const y1 = sy*X + cy*Y;
+  const z1 = Z;
+  const x2 = x1;
+  const y2 = cp*y1 - sp*z1;
+  const z2 = sp*y1 + cp*z1;
+  return {x:x2,y:y2,z:z2};
+}
+
+function makeRenderer(canvas,cells){
+  const w = canvas.width, h = canvas.height;
+  const bounds = computeBounds(cells);
+  const cx = (bounds.minX + bounds.maxX)/2;
+  const cy = (bounds.minY + bounds.maxY)/2;
+  const cz = (bounds.minZ + bounds.maxZ)/2;
+  // Orthographic projection: 1 unit always corresponds to a visibly sized cube.
+  // Unlike the previous code, we do NOT divide the pixel scale by camera distance.
+  const corners = [];
+  for(const X of [bounds.minX,bounds.maxX])
+    for(const Y of [bounds.minY,bounds.maxY])
+      for(const Z of [bounds.minZ,bounds.maxZ])
+        corners.push(rotatePoint(X-cx,Y-cy,Z-cz));
+  const xs = corners.map(p=>p.x), ys = corners.map(p=>p.z);
+  const rangeX = Math.max(...xs)-Math.min(...xs);
+  const rangeY = Math.max(...ys)-Math.min(...ys);
+  const fitScale = Math.min((w-54)/Math.max(rangeX,0.01), (h-54)/Math.max(rangeY,0.01));
+  // Both views use the same maximum unit size. Auto-fit only constrains big models.
+  const pixelsPerUnit = Math.min(82,fitScale)*zoom;
+  const centerX = w/2, centerY = h/2;
+  const project = (x,y,z)=>{
+    const p = rotatePoint(x-cx,y-cy,z-cz);
+    return {x:centerX+p.x*pixelsPerUnit, y:centerY-p.z*pixelsPerUnit, depth:p.y};
+  };
+  return {project};
+}
+
+function faceColor(axis,dir,scaled){
+  if(axis==='z') return dir>0 ? (scaled ? '#dc84d6' : '#f4ba50') : '#69b3d1';
+  if(axis==='x') return dir>0 ? '#2f86b1' : '#266b90';
+  return dir>0 ? '#4b9cbd' : '#357f9d';
+}
+
+function visibleFaces(cells){
+  const set = new Set(cells.map(v=>key(v[0],v[1],v[2])));
+  const faces=[];
+  const defs = [
+    {axis:'x',dir:1, check:[1,0,0], verts:(x,y,z)=>[[x+1,y,z],[x+1,y+1,z],[x+1,y+1,z+1],[x+1,y,z+1]]},
+    {axis:'x',dir:-1,check:[-1,0,0],verts:(x,y,z)=>[[x,y,z],[x,y,z+1],[x,y+1,z+1],[x,y+1,z]]},
+    {axis:'y',dir:1, check:[0,1,0], verts:(x,y,z)=>[[x,y+1,z],[x,y+1,z+1],[x+1,y+1,z+1],[x+1,y+1,z]]},
+    {axis:'y',dir:-1,check:[0,-1,0],verts:(x,y,z)=>[[x,y,z],[x+1,y,z],[x+1,y,z+1],[x,y,z+1]]},
+    {axis:'z',dir:1, check:[0,0,1], verts:(x,y,z)=>[[x,y,z+1],[x+1,y,z+1],[x+1,y+1,z+1],[x,y+1,z+1]]},
+    {axis:'z',dir:-1,check:[0,0,-1],verts:(x,y,z)=>[[x,y,z],[x,y+1,z],[x+1,y+1,z],[x+1,y,z]]}
+  ];
+
+  for(const [x,y,z] of cells){
+    for(const def of defs){
+      const nx = x+def.check[0], ny = y+def.check[1], nz = z+def.check[2];
+      if(!set.has(key(nx,ny,nz))) faces.push({axis:def.axis,dir:def.dir,verts:def.verts(x,y,z)});
+    }
+  }
+  return faces;
+}
+
+function draw3D(canvas,scale){
+  const cells = scale===1 ? [...vox].map(s=>s.split(',').map(Number)) : expandedCells(scale);
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  if(!cells.length){
+    ctx.fillStyle = '#567386';
+    ctx.font = '16px system-ui';
+    ctx.textAlign = 'center';
+    ctx.fillText('Noch kein Körper gebaut', canvas.width/2, canvas.height/2 - 6);
+    ctx.font = '13px system-ui';
+    ctx.fillText('Füge links Einheitswürfel hinzu.', canvas.width/2, canvas.height/2 + 18);
+    return;
+  }
+
+  const {project} = makeRenderer(canvas,cells);
+  const faces = visibleFaces(cells).map(face=>{
+    const pts = face.verts.map(([x,y,z])=>project(x,y,z));
+    const depth = pts.reduce((s,p)=>s+p.depth,0)/pts.length;
+    return {...face, pts, depth};
+  }).sort((a,b)=>a.depth-b.depth);
+
+  for(const face of faces){
+    ctx.beginPath();
+    ctx.moveTo(face.pts[0].x, face.pts[0].y);
+    for(let i=1;i<face.pts.length;i++) ctx.lineTo(face.pts[i].x, face.pts[i].y);
+    ctx.closePath();
+    ctx.fillStyle = faceColor(face.axis, face.dir, scale !== 1);
+    ctx.fill();
+    ctx.lineWidth = 1.35;
+    ctx.strokeStyle = '#183f5b';
+    ctx.stroke();
+  }
+}
+
+function syncZoomUi(){
+  $('zoom').value = String(Math.round(zoom*100));
+  $('zoomvalue').textContent = `${Math.round(zoom*100)} %`;
+}
+
+function setZoom(z){
+  zoom = Math.max(0.6, Math.min(3, z));
+  syncZoomUi();
+  stats();
+}
+
+function measure(){
+  let surface=0, toparea=0;
+  for(const s of vox){
+    const [x,y,z]=s.split(',').map(Number);
+    if(!has(x,y,z+1)) toparea++;
+    for(const [dx,dy,dz] of [[1,0,0],[-1,0,0],[0,1,0],[0,-1,0],[0,0,1],[0,0,-1]]){
+      if(!has(x+dx,y+dy,z+dz)) surface++;
+    }
+  }
+  return {toparea,surface,v:vox.size};
+}
+
+function stats(){
+  const {toparea,surface,v}=measure();
+  $('toparea').textContent = `${toparea} → ${toparea*k*k}`;
+  $('surface').textContent = `${surface} → ${surface*k*k}`;
+  $('volume').textContent = `${v} → ${v*k*k*k}`;
+  $('scaledlabel').textContent = `Alle Kantenlängen × ${k} · mit derselben Perspektive`;
+  draw3D($('original'),1);
+  draw3D($('scaled'),k);
+}
+
+function setupRotation(canvas){
+  let active = false;
+  let lastX = 0, lastY = 0;
+  const start = (x,y)=>{active = true; lastX = x; lastY = y; canvas.classList.add('dragging');};
+  const move = (x,y)=>{
+    if(!active) return;
+    const dx = x - lastX, dy = y - lastY;
+    lastX = x; lastY = y;
+    yaw -= dx * 0.01;
+    pitch -= dy * 0.01;
+    pitch = Math.max(-Math.PI/2, Math.min(Math.PI/2, pitch));
+    stats();
+  };
+  const end = ()=>{active = false; canvas.classList.remove('dragging');};
+  canvas.addEventListener('mousedown', e=>start(e.clientX,e.clientY));
+  window.addEventListener('mousemove', e=>move(e.clientX,e.clientY));
+  window.addEventListener('mouseup', end);
+  canvas.addEventListener('touchstart', e=>{const t = e.touches[0]; start(t.clientX,t.clientY);}, {passive:true});
+  canvas.addEventListener('touchmove', e=>{const t = e.touches[0]; move(t.clientX,t.clientY);}, {passive:true});
+  canvas.addEventListener('touchend', end);
+  canvas.addEventListener('wheel', e=>{
+    e.preventDefault();
+    const factor = e.deltaY < 0 ? 0.08 : -0.08;
+    setZoom(zoom + factor);
+  }, {passive:false});
+}
+
+const measurements = [];
+function renderMeasurements(){
+  const body=$('resultsbody');
+  body.replaceChildren();
+  for(const values of measurements){
+    const row=document.createElement('tr');
+    for(const val of values){
+      const cell=document.createElement('td');
+      cell.textContent=String(val);
+      row.appendChild(cell);
+    }
+    body.appendChild(row);
+  }
+  $('results-empty').hidden=measurements.length>0;
+  $('clearresults').disabled=measurements.length===0;
+}
+$('savevalues').addEventListener('click',()=>{
+  const {toparea,surface,v}=measure();
+  measurements.push([k,toparea,toparea*k*k,surface,surface*k*k,v,v*k*k*k]);
+  renderMeasurements();
+});
+$('clearresults').addEventListener('click',()=>{
+  measurements.length=0;
+  renderMeasurements();
+});
+
+$('layer').addEventListener('change', e=>{layer = +e.target.value; updateGrid();});
+$('scale').addEventListener('change', e=>{k = +e.target.value; stats();});
+$('zoom').addEventListener('input', e=>setZoom((+e.target.value)/100));
+$('zoomin').addEventListener('click', ()=>setZoom(zoom + 0.15));
+$('zoomout').addEventListener('click', ()=>setZoom(zoom - 0.15));
+$('zoomreset').addEventListener('click', ()=>setZoom(1));
+$('topview').addEventListener('click', ()=>{yaw=0;pitch=-Math.PI/2;stats();});
+$('resetview').addEventListener('click', ()=>{yaw=0;pitch=0.9;stats();});
+$('clear').addEventListener('click', ()=>{vox.clear(); updateGrid(); stats();});
+$('example').addEventListener('click', ()=>{
+  vox.clear();
+  for(let x=1;x<4;x++) for(let y=1;y<4;y++) for(let z=0;z<4-x;z++) vox.add(key(x,y,z));
+  layer = 0; $('layer').value = '0'; updateGrid(); stats();
+});
+
+for(let x=1;x<3;x++) for(let y=1;y<3;y++) vox.add(key(x,y,0));
+buildGrid();
+setupRotation($('original'));
+setupRotation($('scaled'));
+syncZoomUi();
+renderMeasurements();
+stats();
+</script>
+</body>
+</html>
